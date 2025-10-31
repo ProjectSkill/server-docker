@@ -1,6 +1,6 @@
 # Copyright (C) 2017-2023 Smart code 203358507
 
-# Use a modern Node version (Render supports 18/20; 14 is EOL)
+# Use a modern Node version supported by Render
 FROM node:20-bullseye
 
 ARG VERSION=master
@@ -10,23 +10,25 @@ LABEL com.stremio.vendor="Smart Code Ltd."
 LABEL version=${VERSION}
 LABEL description="Stremio's streaming Server"
 
-WORKDIR /stremio
+# Set working directory
+WORKDIR /app
 
-# Install ffmpeg (use Debian’s maintained package instead of archived Jellyfin build)
+# Install ffmpeg from Debian repos (stable, no archived mirrors)
 RUN apt-get update \
     && apt-get install -y ffmpeg wget ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Download server build
-COPY download_server.sh download_server.sh
+COPY download_server.sh .
 RUN chmod +x download_server.sh && ./download_server.sh
 
 # Allow overriding server.js if present in repo
 COPY . .
 
+# Persist user data
 VOLUME ["/root/.stremio-server"]
 
-# Expose Render’s dynamic port (not hardcoded 11470/12470)
+# Expose Render’s dynamic port
 EXPOSE $PORT
 
 # Environment variables
