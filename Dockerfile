@@ -10,19 +10,22 @@ RUN apt-get update \
 # Download latest stable server build directly
 RUN wget -O stremio-server.zip https://dl.strem.io/server/v4.20.8/server.linux.zip \
     && unzip stremio-server.zip -d /app \
-    && rm stremio-server.zip
+    && rm stremio-server.zip \
+    && chmod +x /app/server.js || chmod +x /app/stremio-server || true
 
 # Copy any local overrides (optional)
 COPY . .
 
 VOLUME ["/root/.stremio-server"]
 
-EXPOSE $PORT
+# Don't expose static port - Render assigns dynamically
+# EXPOSE $PORT
 
 ENV FFMPEG_BIN=/usr/bin/ffmpeg
 ENV FFPROBE_BIN=/usr/bin/ffprobe
 ENV APP_PATH=/app
-ENV NO_CORS=
+ENV NO_CORS=1
 ENV CASTING_DISABLED=1
 
-CMD ["node", "server.js", "--port", "$PORT", "--host", "0.0.0.0"]
+# Use shell form to allow variable expansion
+CMD node server.js --port=${PORT:-8080} --host=0.0.0.0
